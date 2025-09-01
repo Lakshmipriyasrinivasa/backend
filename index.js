@@ -112,9 +112,12 @@ const pool = new Pool({
   port: 5432,
 });
 
-// const workOrderRoutes = require("./Workorder");
-// app.use("/api", workOrderRoutes);
+const workOrdersRouter = require("./routes/workorder");
 
+app.use("/api/work_orders", workOrdersRouter);
+
+// const scheduleRouter = require("./schedule");
+// app.use("/api", scheduleRouter(pool));
 
 
 // Default route
@@ -595,6 +598,4 @@ app.post("/api/contacts", async (req, res) => {
   }
 });
 
-
-
-app.listen(5000, () => console.log('Server running on port 5000'));
+app.listen(5000, () => console.log("Server running on port 5000"));
