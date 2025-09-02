@@ -112,9 +112,8 @@ const pool = new Pool({
   port: 5432,
 });
 
-const workOrdersRouter = require("./routes/workorder");
-
-app.use("/api/work_orders", workOrdersRouter);
+// const workorderRouter = require("./router/workorder"); // Path relative to index.jsapp.use("/api", workorderRouter);
+// app.use("/api", workorderRouter);
 
 // const scheduleRouter = require("./schedule");
 // app.use("/api", scheduleRouter(pool));
@@ -226,6 +225,17 @@ app.get("/api/contacts", async (req, res) => {
   } catch (err) {
     console.error("Error fetching contacts:", err.message);
     res.status(500).json({ error: "Failed to fetch contacts" });
+  }
+});
+
+// Get all fields
+app.get("/api/fields", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM fields ORDER BY id ASC");
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch fields" });
   }
 });
 
@@ -595,6 +605,34 @@ app.post("/api/contacts", async (req, res) => {
   } catch (err) {
     console.error("Error saving contact:", err);
     res.status(500).json({ error: err.message, code: err.code, detail: err.detail });
+  }
+});
+
+app.post("/api/fields", async (req, res) => {
+  const { name, location, area, status, assignedWorker, lastInspection, description } = req.body;
+  try {
+    const result = await pool.query(
+      `INSERT INTO fields (name, location, area, status, assigned_worker, last_inspection, description)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [name, location, area, status, assignedWorker, lastInspection, description]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to create field" });
+  }
+});
+app.delete("/api/fields/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query("DELETE FROM fields WHERE id = $1 RETURNING *", [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Field not found" });
+    }
+    res.json({ message: "Field deleted", field: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 

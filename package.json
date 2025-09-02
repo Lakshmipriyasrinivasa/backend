@@ -9,7 +9,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "axios": "^1.11.0",
     "cors": "^2.8.5",
@@ -17,5 +16,14 @@
     "express": "^5.1.0",
     "pg": "^8.16.3",
     "uuid": "^11.1.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lakshmipriyasrinivasa/backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Lakshmipriyasrinivasa/backend/issues"
+  },
+  "homepage": "https://github.com/Lakshmipriyasrinivasa/backend#readme",
+  "description": ""
 }
