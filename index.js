@@ -191,7 +191,7 @@ app.get("/api/contacts/dropdown", async (req, res) => {
 });
 
 // contact refer user
-app.get("/api/users", async (req, res) => {
+app.get("/api/users/dropdown", async (req, res) => {
   const users = await pool.query("SELECT id, first_name || ' ' || last_name AS name FROM users");
   res.json(users.rows);
 });
