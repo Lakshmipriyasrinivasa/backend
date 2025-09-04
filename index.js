@@ -239,6 +239,25 @@ app.get("/api/fields", async (req, res) => {
   }
 });
 
+// --- Get all inventory items ---
+app.get('/api/inventory', async (req, res) => {
+  try {
+    const sql = `
+      SELECT 
+        i.*, 
+        o.name AS organization_name
+      FROM inventory i
+      LEFT JOIN organizations o ON i.org_id = o.id
+      ORDER BY i.item_id DESC
+    `;
+    const result = await pool.query(sql);
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error fetching inventory:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 // Add worker
 app.post('/api/workers', async (req, res) => {
@@ -635,5 +654,70 @@ app.delete("/api/fields/:id", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+// --- POST add new inventory item ---
+app.post('/api/inventory', async (req, res) => {
+  const data = req.body;
+
+  // Validate required fields
+  if (!data.org_id || !data.item_number || !data.item_name) {
+    return res.status(400).json({ error: "org_id, item_number, and item_name are required" });
+  }
+
+  const sql = `
+    INSERT INTO inventory (
+      org_id, item_number, item_name, item_description, category, subcategory,
+      unit_of_measure, cost, price, supplier_id, stock_quantity, minimum_stock,
+      maximum_stock, reorder_point, warehouse_location, bin_location, serial_tracked,
+      lot_tracked, expiry_date, last_purchase_date, last_sale_date, weight,
+      dimensions, barcode, image_url, status, created_by, updated_by
+    ) VALUES (
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
+      $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
+      $21,$22,$23,$24,$25,$26,$27,$28
+    )
+    RETURNING *;
+  `;
+
+  const values = [
+    data.org_id,
+    data.item_number,
+    data.item_name,
+    data.item_description || null,
+    data.category || null,
+    data.subcategory || null,
+    data.unit_of_measure || null,
+    data.cost || null,
+    data.price || null,
+    data.supplier_id || null,
+    data.stock_quantity || null,
+    data.minimum_stock || null,
+    data.maximum_stock || null,
+    data.reorder_point || null,
+    data.warehouse_location || null,
+    data.bin_location || null,
+    !!data.serial_tracked,
+    !!data.lot_tracked,
+    data.expiry_date || null,
+    data.last_purchase_date || null,
+    data.last_sale_date || null,
+    data.weight || null,
+    data.dimensions || null,
+    data.barcode || null,
+    data.image_url || null,
+    data.status || "active",
+    data.created_by || null,
+    data.updated_by || null,
+  ];
+
+  try {
+    const result = await pool.query(sql, values);
+    res.status(201).json({ message: "Inventory added successfully!", item: result.rows[0] });
+  } catch (err) {
+    console.error("Error adding inventory:", err);
+    res.status(500).json({ error: err.message, code: err.code, detail: err.detail });
+  }
+});
+
 
 app.listen(5000, () => console.log("Server running on port 5000"));
